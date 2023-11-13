@@ -1,4 +1,6 @@
 // TODO: Type {next-auth.User} must be inherited from IUser
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import Credentials from 'next-auth/providers/credentials';
 import backendAPI from '@/backendAPI';
 import {NextAuthOptions, User} from 'next-auth';
@@ -13,6 +15,7 @@ const options: NextAuthOptions = {
             credentials: {
                 id: {type: 'text'},
             },
+            // @ts-ignore
             async authorize(credentials) {
                 const res = await backendAPI.getUser(
                     Number(credentials?.id) || 0);
@@ -28,6 +31,7 @@ const options: NextAuthOptions = {
     ],
     callbacks: {
         jwt: ({token, user}: {token: JWT, user: User}) => {
+            // @ts-ignore
             user && (token.user = user);
             return token;
         },
