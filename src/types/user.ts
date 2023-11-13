@@ -3,8 +3,8 @@ import {z} from 'zod';
 
 export const UserScheme = z.object({
     id: z.number(),
-    firstName: z.string(),
-    lastName: z.string(),
+    firstname: z.string(),
+    lastname: z.string(),
     username: z.string(),
     image: z.string().url(),
 });

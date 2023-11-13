@@ -14,7 +14,10 @@ module.exports = {
     project: ['./tsconfig.json', './tsconfig.node.json'],
     tsconfigRootDir: './',
   },
-  plugins: ['react-refresh'],
+  plugins: [
+      'react-refresh',
+      '@tanstack/query',
+  ],
   settings: {
     'react': {
       'version': 'detect'

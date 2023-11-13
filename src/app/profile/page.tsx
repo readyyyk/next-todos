@@ -1,63 +1,52 @@
-'use client';
-
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC} from 'react';
 import CenterLayout from '@/components/CenterLayout';
 import ClientImage from '@/components/ClientImage';
 import {redirect} from 'next/navigation';
-import User, {UserScheme} from '@/types/user';
-import Link from 'next/link';
 
-import {z} from 'zod';
+import {getServerSession} from 'next-auth';
+import options from '@/app/api/auth/[...nextauth]/options';
+import backendAPI from '@/backendAPI';
+import {Button} from '@/components/ui/button';
+import Link from 'next/link';
 
 
 interface Props {}
 
-const Page:FC<Props> = ({}) => {
-    if (typeof window === 'undefined' || !('localStorage' in window) || !('_token' in localStorage)) {
-        redirect('/login');
+const Page:FC<Props> = async ({}) => {
+    const session = await getServerSession(options);
+    if (!session) {
+        redirect('/api/auth/signin');
     }
 
-    const token = z.string().safeParse(localStorage['_token']);
-    console.log(token);
-    const [user, setUser] = useState<User|undefined>(undefined);
+    const response = await backendAPI.getUser(session.user.id);
+    if (!response.success) {
+        console.log(response.error.message);
+        return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;
+    }
 
-    useEffect(() => {
-        void (async ()=> {
-            const parsed = UserScheme.safeParse(
-                await fetch(`https://dummyjson.com/todos/user/5`,
-                    {headers: {}})
-                    .then((res) => res.json()),
-            );
-            if (!parsed.success) {
-                console.log(parsed.error.message);
-                return;
-            }
-            setUser(parsed.data);
-        })();
-    }, []);
+    const user = response.data;
 
     return (
         <CenterLayout>
-            { user ?
-                <div className={'flex flex-1 items-center gap-4'}>
-                    <ClientImage
-                        className={'aspect-square w-16 rounded-full shadow-md'}
-                        src={user.image}
-                        alt={'User avatar'}
-                        width={24}
-                        height={24}
-                        loading="lazy"
-                    />
-                    <div className={'flex flex-col justify-center'}>
-                        <h2 className={'text-xl font-bold'}>{user.firstName} {user.lastName}</h2>
-                        <h2 className={'text-xl font-light'}>{user.username}</h2>
-                    </div>
-                </div> :
-                <div className={'flex h-screen flex-col items-center justify-center'}>
-                    <h1 className={'text-4xl text-red-700'}> Error parsing user data </h1>
-                    <Link href={'/'} className={'mt-4 rounded-xl bg-blue-600 px-6 py-2 text-3xl text-white'}>Home</Link>
+            <div className={'flex flex-1 items-center gap-4'}>
+                <ClientImage
+                    className={'aspect-square w-16 rounded-full shadow-md'}
+                    src={user.image}
+                    alt={'User avatar'}
+                    width={24}
+                    height={24}
+                    loading="lazy"
+                />
+                <div className={'flex flex-col justify-center'}>
+                    <h2 className={'text-xl font-bold'}>{user.firstname} {user.lastname}</h2>
+                    <h2 className={'text-xl font-light'}>{user.username}</h2>
                 </div>
-            }
+            </div>
+            <div className={'grid grid-cols-1 justify-items-center'}>
+                <Link href={'/api/auth/signout'}>
+                    <Button variant={'danger'} className={'w-min'}>Sign out</Button>
+                </Link>
+            </div>
         </CenterLayout>
     );
 };

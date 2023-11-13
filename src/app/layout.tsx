@@ -4,6 +4,8 @@ import './globals.css';
 import {FC, ReactNode} from 'react';
 import {ThemeProvider} from '@/components/theme-provider';
 import Header from '@/components/Header';
+import TSQueryProvider from '@/components/TQuery.provider';
+import AuthProvider from '@/components/Auth.provider';
 
 
 const font = roboto({subsets: ['latin', 'cyrillic'], weight: '400'});
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
     title: 'Todos',
     description: 'Test Next js todo list application',
 };
+
 
 const RootLayout:FC<{children: ReactNode}> = ({children}) => {
     return (
@@ -25,7 +28,11 @@ const RootLayout:FC<{children: ReactNode}> = ({children}) => {
                     disableTransitionOnChange
                 >
                     <Header />
-                    {children}
+                    <TSQueryProvider>
+                        <AuthProvider>
+                            {children}
+                        </AuthProvider>
+                    </TSQueryProvider>
                 </ThemeProvider>
             </body>
         </html>

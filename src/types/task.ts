@@ -1,19 +1,20 @@
 import {z} from 'zod';
+import {UserScheme} from '@/types/user';
 
 
 export const TaskScheme = z.object({
     id: z.number(),
-    todo: z.string(),
-    userId: z.number(),
-    completed: z.boolean(),
+    owner_id: z.number(),
+    description: z.string(),
+    state: z.string(), // TODO Enum
+    created_at: z.string(),
 });
 
-export const TaskResScheme = z.object({
-    todos: z.array(TaskScheme),
-    skip: z.number(),
-    total: z.number(),
-    limit: z.number(),
+export const TaskWithOwnerScheme = TaskScheme.extend({
+    owner: UserScheme,
 });
+
+export const TaskListScheme = z.array(TaskScheme);
 
 type ITask = z.infer<typeof TaskScheme>;
 
