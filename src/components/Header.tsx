@@ -1,15 +1,12 @@
-import {FC} from 'react';
+import {FC, Suspense} from 'react';
 import Link from 'next/link';
-import {HomeIcon, AvatarIcon} from '@radix-ui/react-icons';
-import {getServerSession} from 'next-auth';
-import options from '@/app/api/auth/[...nextauth]/options';
-import ClientImage from '@/components/ClientImage';
+import {HomeIcon} from '@radix-ui/react-icons';
+import {Skeleton} from '@/components/ui/skeleton';
+import UserData from './Header/UserData';
 
 interface Props {}
 
-const Header:FC<Props> = async ({}) => {
-    const session = await getServerSession(options);
-
+const Header:FC<Props> = ({}) => {
     return (
         <div className={'sticky top-2 z-30 m-auto flex h-14 w-[80dvw] max-w-xl items-stretch justify-between space-x-2 rounded-full bg-zinc-800 p-2 shadow-lg'}>
             <div className={'flex items-center'}>
@@ -19,21 +16,12 @@ const Header:FC<Props> = async ({}) => {
                 </Link>
             </div>
             <div className={'flex rounded-full px-3 py-2 text-lg text-accent transition-colors hover:bg-slate-600'}>
-                {!session ?
-                    <Link href={'/api/auth/signin'} className={'flex w-fit items-center space-x-3'}>
-                        <h3 className={'w-fit'}>Log in</h3>
-                        <AvatarIcon className={'h-full w-fit'}/>
-                    </Link> :
-                    <Link href={'/profile'} className={'flex items-center space-x-3'}>
-                        <h3 className={'w-fit'}>{session.user.username}</h3>
-                        <ClientImage
-                            className={'h-full w-fit'}
-                            src={session.user.image}
-                            alt={'userLogo'}
-                            width={15}
-                            height={15}
-                        />
-                    </Link>}
+                <Suspense fallback={
+                    <div className={'flex items-center space-x-3'}>
+                        <Skeleton className={'w-12'}/>
+                        <Skeleton className={'h-full w-fit rounded-full'}/>
+                    </div>
+                }><UserData/></Suspense>
             </div>
         </div>
     );

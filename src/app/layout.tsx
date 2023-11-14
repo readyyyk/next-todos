@@ -27,9 +27,9 @@ const RootLayout:FC<{children: ReactNode}> = ({children}) => {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <Header />
                     <TSQueryProvider>
                         <AuthProvider>
+                            <Header />
                             {children}
                         </AuthProvider>
                     </TSQueryProvider>

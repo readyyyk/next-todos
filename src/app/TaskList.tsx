@@ -20,11 +20,11 @@ const TaskList = async () => {
 
     const todos = response.data;
     return (
-        <div className={'mt-10 flex w-full flex-col flex-wrap justify-center gap-6 px-2 md:grid md:grid-cols-3'}>
+        <>
             {todos.map((el) => {
                 return <Task {...el} key={el.id}/>;
             })}
-        </div>
+        </>
     );
 };
 

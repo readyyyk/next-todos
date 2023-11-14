@@ -1,10 +1,11 @@
-import React, {FC} from 'react';
+import React, {FC, Suspense} from 'react';
 import TaskList from '@/app/TaskList';
 import {Button} from '@/components/ui/button';
 import Link from 'next/link';
 import {getServerSession} from 'next-auth';
 import options from '@/app/api/auth/[...nextauth]/options';
 import CenterLayout from '@/components/CenterLayout';
+import {Skeleton} from '@/components/ui/skeleton';
 
 
 const Home:FC = async () => {
@@ -21,7 +22,15 @@ const Home:FC = async () => {
                 </CenterLayout> :
                 <>
                     <h1 className={'text-center text-4xl'}>Task list:</h1>
-                    <TaskList />
+                    <div className={'mt-10 flex w-full flex-col flex-wrap justify-center gap-6 px-2 md:grid md:grid-cols-3'}>
+                        <Suspense fallback={<>
+                            <Skeleton className={'h-40'}/>
+                            <Skeleton className={'h-52'}/>
+                            <Skeleton className={'h-44'}/>
+                        </>}>
+                            <TaskList />
+                        </Suspense>
+                    </div>
                 </>
             }
         </div>

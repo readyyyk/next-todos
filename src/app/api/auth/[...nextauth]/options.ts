@@ -3,8 +3,7 @@
 
 import Credentials from 'next-auth/providers/credentials';
 import backendAPI from '@/backendAPI';
-import {NextAuthOptions, User} from 'next-auth';
-import {JWT} from 'next-auth/jwt';
+import {NextAuthOptions} from 'next-auth';
 
 
 const options: NextAuthOptions = {
@@ -30,7 +29,7 @@ const options: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        jwt: ({token, user}: {token: JWT, user: User}) => {
+        jwt: ({token, user}) => {
             // @ts-ignore
             user && (token.user = user);
             return token;
