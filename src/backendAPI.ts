@@ -1,50 +1,91 @@
 import axios from 'axios';
-import {TaskListScheme, TaskWithOwnerScheme} from '@/types/task';
-import {UserScheme} from '@/types/user';
+import {
+    ITaskListSafeResult,
+    ITaskWithOwnerSafeResult,
+    TaskListScheme,
+    TaskWithOwnerScheme,
+} from '@/types/task';
+import {IUserSafeResult, UserScheme} from '@/types/user';
 
 
 const instance = axios.create({
-    baseURL: process.env.BACKEND_URL as string,
+    baseURL: process.env.BACKEND_URL, //  as string,
 });
 
 
-const backendAPI = {
-    axios: instance,
+interface cachedApiResult<B> {
+    queryFn(this: void): Promise<B>,
+    queryKey: string,
+}
+interface cachedApiRoute<A, B> {
+    (cacheKey: A): cachedApiResult<B>
+}
+interface IBackendAPI {
+    // signin(data: { username: string, password: string }): unknown,
+    // signup(data: { username: string, password: string }): unknown,
+    getTodos: cachedApiRoute<number, ITaskListSafeResult>,
+    getUser: cachedApiRoute<number, IUserSafeResult>,
+    getTodoWithOwner: cachedApiRoute<number, ITaskWithOwnerSafeResult>,
+}
 
-    async signin(data: { username: string, password: string }) {
-        return this.axios.get('/auth/signin', {data});
+const backendAPI: IBackendAPI = {
+    /*
+    async signup(data: { username: string, password: string }) {
+        return this.axios.post('/auth/signin', {data});
     },
     async signup(data: {username: string}) {
-        return this.axios.get('/auth/signup', {data});
+        return this.axios.post('/auth/signup', {data});
     },
-    async getTodos(userId: number) {
-        try {
-            const res = await this.axios.get('/todos/by-owner/'+userId);
-            return TaskListScheme.safeParse(res?.data);
-        } catch (e) {
-            console.error('\n --[X]--: ', String(e));
-            return TaskListScheme.safeParse(null);
-        }
+    */
+
+    getTodos(userId) {
+        const queryFn = async ()=> {
+            try {
+                const res = await instance.get('/todos/by-owner/' + userId);
+                return TaskListScheme.safeParse(res?.data);
+            } catch (e) {
+                console.error('\n --[X]--: ', String(e));
+                return TaskListScheme.safeParse(null);
+            }
+        };
+        const queryKey = `todo-array-${userId}`;
+        return {
+            queryFn,
+            queryKey,
+        };
     },
-    async getUser(userId: number) {
-        try {
-            const res = await this.axios.get('/users/'+userId);
-            return UserScheme.safeParse(res?.data);
-        } catch (e) {
-            console.error('\n --[X]--: ', String(e));
-            return UserScheme.safeParse(null);
-        }
+    getUser(userId) {
+        const queryFn = async ()=> {
+            try {
+                const res = await instance.get('/users/'+userId);
+                return UserScheme.safeParse(res?.data);
+            } catch (e) {
+                console.error('\n --[X]--: ', String(e));
+                return UserScheme.safeParse(null);
+            }
+        };
+        const queryKey = `user-${userId}`;
+        return {
+            queryFn,
+            queryKey,
+        };
     },
-    async getTodoWithOwner(todoId: number) {
-        try {
-            const res = await this.axios.get(`/todos/${todoId}/with-owner`);
-            return TaskWithOwnerScheme.safeParse(res?.data);
-        } catch (e) {
-            console.error('\n --[X]--: ', String(e));
-            return TaskWithOwnerScheme.safeParse(null);
-        }
+    getTodoWithOwner(todoId) {
+        const queryFn = async ()=> {
+            try {
+                const res = await instance.get(`/todos/${todoId}/with-owner`);
+                return TaskWithOwnerScheme.safeParse(res?.data);
+            } catch (e) {
+                console.error('\n --[X]--: ', String(e));
+                return TaskWithOwnerScheme.safeParse(null);
+            }
+        };
+        const queryKey = `todo-with-owner-${todoId}`;
+        return {
+            queryFn,
+            queryKey,
+        };
     },
 };
-
 
 export default backendAPI;

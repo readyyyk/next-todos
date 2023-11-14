@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import {Roboto as roboto} from 'next/font/google';
 import './globals.css';
 import {FC, ReactNode} from 'react';
-import {ThemeProvider} from '@/components/theme-provider';
+import {ThemeProvider} from '@/components/Theme.provider';
 import Header from '@/components/Header';
 import TSQueryProvider from '@/components/TQuery.provider';
 import AuthProvider from '@/components/Auth.provider';

@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {SafeParseReturnType, z} from 'zod';
 
 
 export const UserScheme = z.object({
@@ -8,6 +8,7 @@ export const UserScheme = z.object({
     username: z.string(),
     image: z.string().url(),
 });
+export type IUserSafeResult = SafeParseReturnType<User, User>;
 
 type User = z.infer<typeof UserScheme>;
 

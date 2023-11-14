@@ -1,12 +1,14 @@
-import {FC, Suspense} from 'react';
+import {FC} from 'react';
 import Link from 'next/link';
-import {HomeIcon} from '@radix-ui/react-icons';
-import {Skeleton} from '@/components/ui/skeleton';
+import {AvatarIcon, HomeIcon} from '@radix-ui/react-icons';
 import UserData from './Header/UserData';
+import {getServerSession} from 'next-auth';
+import options from '@/app/api/auth/[...nextauth]/options';
 
 interface Props {}
 
-const Header:FC<Props> = ({}) => {
+const Header:FC<Props> = async ({}) => {
+    const session = await getServerSession(options);
     return (
         <div className={'sticky top-2 z-30 m-auto flex h-14 w-[80dvw] max-w-xl items-stretch justify-between space-x-2 rounded-full bg-zinc-800 p-2 shadow-lg'}>
             <div className={'flex items-center'}>
@@ -16,12 +18,12 @@ const Header:FC<Props> = ({}) => {
                 </Link>
             </div>
             <div className={'flex rounded-full px-3 py-2 text-lg text-accent transition-colors hover:bg-slate-600'}>
-                <Suspense fallback={
-                    <div className={'flex items-center space-x-3'}>
-                        <Skeleton className={'w-12'}/>
-                        <Skeleton className={'h-full w-fit rounded-full'}/>
-                    </div>
-                }><UserData/></Suspense>
+                {session ?
+                    <UserData userId={session.user.id}/> :
+                    <Link href={'/api/auth/signin'} className={'flex w-fit items-center space-x-3'}>
+                        <h3 className={'w-fit'}>Log in</h3>
+                        <AvatarIcon className={'h-full w-fit'}/>
+                    </Link>}
             </div>
         </div>
     );

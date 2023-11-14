@@ -1,40 +1,19 @@
-import React, {FC, Suspense} from 'react';
+import React, {FC} from 'react';
 import TaskList from '@/app/TaskList';
-import {Button} from '@/components/ui/button';
-import Link from 'next/link';
-import {getServerSession} from 'next-auth';
+import NotLogged from '@/components/NotLogged';
 import options from '@/app/api/auth/[...nextauth]/options';
-import CenterLayout from '@/components/CenterLayout';
-import {Skeleton} from '@/components/ui/skeleton';
+import {getServerSession} from 'next-auth';
 
 
 const Home:FC = async () => {
     const session = await getServerSession(options);
 
-    return (
+    return session ?
         <div className={'container m-auto px-2 py-12'}>
-            {!session ?
-                <CenterLayout>
-                    <h1 className={'text-center text-4xl'}>You&apos;re not logged</h1>
-                    <Link href={'/api/auth/signin'} className={'justify-self-center'}>
-                        <Button variant={'success'} className={'text-xl'}>Sign in</Button>
-                    </Link>
-                </CenterLayout> :
-                <>
-                    <h1 className={'text-center text-4xl'}>Task list:</h1>
-                    <div className={'mt-10 flex w-full flex-col flex-wrap justify-center gap-6 px-2 md:grid md:grid-cols-3'}>
-                        <Suspense fallback={<>
-                            <Skeleton className={'h-40'}/>
-                            <Skeleton className={'h-52'}/>
-                            <Skeleton className={'h-44'}/>
-                        </>}>
-                            <TaskList />
-                        </Suspense>
-                    </div>
-                </>
-            }
-        </div>
-    );
+            <h1 className={'text-center text-4xl'}>Task list:</h1>
+            <TaskList userId={session.user.id}/>
+        </div> :
+        <NotLogged />;
 };
 
 export default Home;

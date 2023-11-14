@@ -16,8 +16,8 @@ const options: NextAuthOptions = {
             },
             // @ts-ignore
             async authorize(credentials) {
-                const res = await backendAPI.getUser(
-                    Number(credentials?.id) || 0);
+                const {queryFn} = backendAPI.getUser(Number(credentials?.id));
+                const res = await queryFn();
 
                 if (res.success) {
                     return res.data;

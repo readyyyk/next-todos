@@ -9,7 +9,8 @@ interface Props {
 }
 
 const TaskData:FC<Props> = async ({todoId}) => {
-    const response = await backendAPI.getTodoWithOwner(todoId);
+    const {queryFn} = backendAPI.getTodoWithOwner(todoId);
+    const response = await queryFn();
     if (!response.success) {
         console.log(response.error.message);
         return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;

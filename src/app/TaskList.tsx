@@ -1,31 +1,41 @@
-import React from 'react';
+'use client';
+
+import React, {FC} from 'react';
 import Task from '@/app/Task';
 import backendAPI from '@/backendAPI';
-import {getServerSession} from 'next-auth';
-import options from '@/app/api/auth/[...nextauth]/options';
-import {redirect} from 'next/navigation';
+import {useQuery} from '@tanstack/react-query';
+import {Skeleton} from '@/components/ui/skeleton';
 
 
-const TaskList = async () => {
-    const session = await getServerSession(options);
-    if (!session) {
-        redirect('/api/auth/signin');
-    }
+interface Props {
+    userId: number,
+}
 
-    const response = await backendAPI.getTodos(session.user.id);
-    if (!response.success) {
-        console.log(response.error.message);
-        return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;
-    }
+const TaskList:FC<Props> = ({userId}) => {
+    const {queryFn, queryKey} = backendAPI.getTodos(userId);
+    const query = useQuery({
+        queryKey: [queryKey],
+        queryFn,
+    });
 
-    const todos = response.data;
-    return (
-        <>
-            {todos.map((el) => {
-                return <Task {...el} key={el.id}/>;
+    let taskList = <h2 key='Error'>Failed to fetch</h2>;
+    if (query.data && query.data.success) {
+        taskList = (<>
+            {query.data.data.map((el) => {
+                return <Task {...el} key={'task-' + el.id}/>;
             })}
-        </>
-    );
+        </>);
+    }
+
+    return <div className={'mt-10 flex w-full flex-col flex-wrap justify-center gap-6 px-2 md:grid md:grid-cols-3'}>
+        {
+            query.isLoading ? <>
+                <Skeleton className={'h-40'}/>
+                <Skeleton className={'h-52'}/>
+                <Skeleton className={'h-44'}/>
+            </> : taskList
+        }
+    </div>;
 };
 
 export default TaskList;
