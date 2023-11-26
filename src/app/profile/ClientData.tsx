@@ -7,6 +7,7 @@ import backendAPI from '@/backendAPI';
 import {useSession} from 'next-auth/react';
 import {useQuery} from '@tanstack/react-query';
 import {Skeleton} from '@/components/ui/skeleton';
+import {createAuthedAxiosInst} from '@/backendAxios';
 
 interface Props {}
 
@@ -16,7 +17,8 @@ const ClientData:FC<Props> = ({}) => {
         redirect('/api/auth/signin');
     }
 
-    const {queryFn, queryKey} = backendAPI.getUser(session.user.id);
+    const instance = createAuthedAxiosInst(session.user);
+    const {queryFn, queryKey} = backendAPI.getMe(null, instance);
     const query = useQuery({
         queryFn,
         queryKey: [queryKey],
@@ -39,21 +41,23 @@ const ClientData:FC<Props> = ({}) => {
     const response = query.data;
 
     if (!response.success) {
-        console.log(response.error.message);
+        console.error(response.error.message);
         return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;
     }
 
     const user = response.data;
 
     return (<>
-        <ClientImage
-            className={'aspect-square w-16 rounded-full shadow-md'}
-            src={user.image}
-            alt={'User avatar'}
-            width={24}
-            height={24}
-            loading="lazy"
-        />
+        <div className={'aspect-square w-16 rounded-full p-2 shadow-md'}>
+            <ClientImage
+                className={'w-full'}
+                src={user.image}
+                alt={'User avatar'}
+                width={24}
+                height={24}
+                loading="lazy"
+            />
+        </div>
         <div className={'flex flex-col justify-center'}>
             <h2 className={'text-xl font-bold'}>{user.firstname} {user.lastname}</h2>
             <h2 className={'text-xl font-light'}>{user.username}</h2>

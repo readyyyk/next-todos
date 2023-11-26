@@ -6,19 +6,19 @@ import Image, {ImageProps} from 'next/image';
 
 interface LoaderParams {
     src: string,
-    width?: number,
+    width: number,
     quality?: number,
 }
 
-const imageLoader = ({src}:LoaderParams) => {
-    return src;
+const imageLoader = ({src, width}:LoaderParams) => {
+    return src+`&size=${width}`;
 };
 
 const ClientImage:FC<ImageProps> = (props) => {
-    // eslint-disable-next-line jsx-a11y/alt-text
     return <Image
         loader={imageLoader}
         {...props}
+        alt={'avatar' || props.alt}
     />;
 };
 

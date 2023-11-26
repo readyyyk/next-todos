@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, {AxiosError, AxiosInstance} from 'axios';
 import {
     ITaskListSafeResult,
     ITaskWithOwnerSafeResult,
@@ -6,42 +6,85 @@ import {
     TaskWithOwnerScheme,
 } from '@/types/task';
 import {IUserSafeResult, UserScheme} from '@/types/user';
+import {
+    loginResultError,
+    loginResultErrorSchema,
+    loginResultSuccess,
+    loginResultSuccessSchema,
+} from '@/types/jwt';
 
 
-const instance = axios.create({
-    baseURL: process.env.BACKEND_URL, //  as string,
-});
-
-
-interface cachedApiResult<B> {
+interface cachedApiRouteResult<B> {
     queryFn(this: void): Promise<B>,
     queryKey: string,
 }
 interface cachedApiRoute<A, B> {
-    (cacheKey: A): cachedApiResult<B>
+    (cacheKey: A, instance: AxiosInstance): cachedApiRouteResult<B>
 }
 interface IBackendAPI {
-    // signin(data: { username: string, password: string }): unknown,
+    login(data: { username:string, password:string }, instance: AxiosInstance):
+        Promise<loginResultError | loginResultSuccess>,
+    refreshTokens(refreshToken: string, instance: AxiosInstance):
+        Promise<loginResultError | loginResultSuccess>,
     // signup(data: { username: string, password: string }): unknown,
     getTodos: cachedApiRoute<number, ITaskListSafeResult>,
+    getMe: cachedApiRoute<null, IUserSafeResult>,
     getUser: cachedApiRoute<number, IUserSafeResult>,
     getTodoWithOwner: cachedApiRoute<number, ITaskWithOwnerSafeResult>,
 }
 
 const backendAPI: IBackendAPI = {
-    /*
-    async signup(data: { username: string, password: string }) {
-        return this.axios.post('/auth/signin', {data});
+    async login(data: { username: string, password: string }, instance) {
+        try {
+            const a = await instance.post('/auth/login', data);
+            return {
+                data: loginResultSuccessSchema.parse(a.data),
+                success: true,
+            };
+        } catch (e) {
+            if (!axios.isAxiosError(e)) {
+                console.error(e);
+                throw e;
+                // throw new Error('Runtime error (backendAPI.login)');
+            }
+            const err = e as AxiosError;
+            return {
+                data: loginResultErrorSchema.parse(err.response).data,
+                success: false,
+            };
+        }
     },
+
+    async refreshTokens(token, instance) {
+        try {
+            const a = await instance.post('/auth/refresh-tokens',
+                {}, {headers: {'Authorization': `Bearer ${token}`}});
+            return {
+                data: loginResultSuccessSchema.parse(a.data),
+                success: true,
+            };
+        } catch (e) {
+            if (!axios.isAxiosError(e)) {
+                console.error(e);
+                throw new Error('Runtime error (backendAPI.refreshTokens)');
+            }
+            const err = e as AxiosError;
+            return {
+                ...loginResultErrorSchema.parse(err.response?.data),
+                success: false,
+            };
+        }
+    },
+    /*
     async signup(data: {username: string}) {
         return this.axios.post('/auth/signup', {data});
     },
     */
 
-    getTodos(userId) {
+    getTodos(userId, instance) {
         const queryFn = async ()=> {
             try {
-                const res = await instance.get('/todos/by-owner/' + userId);
+                const res = await instance.get('/todos/my');
                 return TaskListScheme.safeParse(res?.data);
             } catch (e) {
                 console.error('\n --[X]--: ', String(e));
@@ -54,7 +97,23 @@ const backendAPI: IBackendAPI = {
             queryKey,
         };
     },
-    getUser(userId) {
+    getMe(_, instance) {
+        const queryFn = async ()=> {
+            try {
+                const res = await instance.get('/users/me');
+                return UserScheme.safeParse(res?.data);
+            } catch (e) {
+                console.error('\n --[X]--: ', String(e));
+                return UserScheme.safeParse(null);
+            }
+        };
+        const queryKey = `user-me`;
+        return {
+            queryFn,
+            queryKey,
+        };
+    },
+    getUser(userId, instance) {
         const queryFn = async ()=> {
             try {
                 const res = await instance.get('/users/'+userId);
@@ -70,7 +129,7 @@ const backendAPI: IBackendAPI = {
             queryKey,
         };
     },
-    getTodoWithOwner(todoId) {
+    getTodoWithOwner(todoId, instance) {
         const queryFn = async ()=> {
             try {
                 const res = await instance.get(`/todos/${todoId}/with-owner`);

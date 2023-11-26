@@ -38,7 +38,6 @@ module.exports = {
   ignorePatterns: [
     'dist/',
     'src/components/ui/*',
-    'src/lib/*',
     '.eslintrc.cjs',
     '*env.d.ts',
     'main.tsx',

@@ -3,16 +3,18 @@ import backendAPI from '@/backendAPI';
 import ClientImage from '@/components/ClientImage';
 import ActionsBar from '@/app/[todoId]/ActionsBar';
 import {Button} from '@/components/ui/button';
+import {serverAuthedAxiosInst} from '@/backendAxios';
 
 interface Props {
     todoId: number
 }
 
 const TaskData:FC<Props> = async ({todoId}) => {
-    const {queryFn} = backendAPI.getTodoWithOwner(todoId);
+    const instance = await serverAuthedAxiosInst();
+    const {queryFn} = backendAPI.getTodoWithOwner(todoId, instance);
     const response = await queryFn();
     if (!response.success) {
-        console.log(response.error.message);
+        console.error(response.error.message);
         return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;
     }
     return (<>

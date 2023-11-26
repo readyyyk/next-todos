@@ -9,6 +9,8 @@ import schema from './schema';
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
+import {signIn} from 'next-auth/react';
+import {useRouter} from 'next/navigation';
 
 type validationSchema = z.infer<typeof schema>;
 
@@ -16,12 +18,24 @@ type validationSchema = z.infer<typeof schema>;
 interface Props {}
 
 const Page:FC<Props> = ({}) => {
+    const router = useRouter();
     const form = useForm<validationSchema>({
         resolver: zodResolver(schema),
     });
 
-    const onSubmit: SubmitHandler<validationSchema> = (data) => {
-        console.log(data);
+    const onSubmit: SubmitHandler<validationSchema> = async (data) => {
+        form.clearErrors();
+        const resp = await signIn('credentials', {
+            ...data,
+            redirect: false,
+            callbackUrl: '/',
+        });
+        if (!resp) throw new Error(`sigin.Page.onSubmit: resp is ${resp}`);
+        if (!resp.ok) {
+            form.setError('username', {type: 'custom', message: resp.error||''});
+            return;
+        }
+        router.push('/');
     };
 
     return (
@@ -55,7 +69,7 @@ const Page:FC<Props> = ({}) => {
                             </FormItem>
                         )}
                     />
-                    <Button type="submit">Submit</Button>
+                    <Button type="submit" loading={form.formState.isSubmitting}>Submit</Button>
                 </form>
             </FormProvider>
         </CenterLayout>
