@@ -7,11 +7,21 @@ import {
 } from '@/types/task';
 import {IUserSafeResult, UserScheme} from '@/types/user';
 import {
-    loginResultError,
-    loginResultErrorSchema,
-    loginResultSuccess,
-    loginResultSuccessSchema,
+    tokensSchema,
 } from '@/types/jwt';
+import {
+    ISignUpScheme,
+    signupResultError,
+    signupResultErrorSchema,
+    signupResultSuccess,
+    signupResultSuccessSchema,
+} from '@/types/signUp';
+import {
+    SignIn,
+    signinResultError,
+    signinResultErrorSchema,
+    signinResultSuccess,
+} from '@/types/signIn';
 
 
 interface cachedApiRouteResult<B> {
@@ -22,11 +32,12 @@ interface cachedApiRoute<A, B> {
     (cacheKey: A, instance: AxiosInstance): cachedApiRouteResult<B>
 }
 interface IBackendAPI {
-    login(data: { username:string, password:string }, instance: AxiosInstance):
-        Promise<loginResultError | loginResultSuccess>,
+    signin(data: SignIn, instance: AxiosInstance):
+        Promise<signinResultError | signinResultSuccess>,
+    signup(data: ISignUpScheme, instance: AxiosInstance):
+        Promise<signupResultError | signupResultSuccess>,
     refreshTokens(refreshToken: string, instance: AxiosInstance):
-        Promise<loginResultError | loginResultSuccess>,
-    // signup(data: { username: string, password: string }): unknown,
+        Promise<signinResultError | signinResultSuccess>,
     getTodos: cachedApiRoute<number, ITaskListSafeResult>,
     getMe: cachedApiRoute<null, IUserSafeResult>,
     getUser: cachedApiRoute<number, IUserSafeResult>,
@@ -34,11 +45,11 @@ interface IBackendAPI {
 }
 
 const backendAPI: IBackendAPI = {
-    async login(data: { username: string, password: string }, instance) {
+    async signin(data: { username: string, password: string }, instance) {
         try {
             const a = await instance.post('/auth/login', data);
             return {
-                data: loginResultSuccessSchema.parse(a.data),
+                data: tokensSchema.parse(a.data),
                 success: true,
             };
         } catch (e) {
@@ -49,7 +60,26 @@ const backendAPI: IBackendAPI = {
             }
             const err = e as AxiosError;
             return {
-                data: loginResultErrorSchema.parse(err.response).data,
+                data: signinResultErrorSchema.parse(err.response).data,
+                success: false,
+            };
+        }
+    },
+    async signup(data, instance) {
+        try {
+            const a = await instance.post('/users/create', data);
+            return {
+                data: signupResultSuccessSchema.parse(a.data),
+                success: true,
+            };
+        } catch (e) {
+            if (!axios.isAxiosError(e)) {
+                console.error(e);
+                throw new Error('Runtime error (backendAPI.signup)');
+            }
+            const err = e as AxiosError;
+            return {
+                data: signupResultErrorSchema.parse(err.response).data,
                 success: false,
             };
         }
@@ -60,7 +90,7 @@ const backendAPI: IBackendAPI = {
             const a = await instance.post('/auth/refresh-tokens',
                 {}, {headers: {'Authorization': `Bearer ${token}`}});
             return {
-                data: loginResultSuccessSchema.parse(a.data),
+                data: tokensSchema.parse(a.data),
                 success: true,
             };
         } catch (e) {
@@ -70,7 +100,7 @@ const backendAPI: IBackendAPI = {
             }
             const err = e as AxiosError;
             return {
-                ...loginResultErrorSchema.parse(err.response?.data),
+                ...signinResultErrorSchema.parse(err.response?.data),
                 success: false,
             };
         }

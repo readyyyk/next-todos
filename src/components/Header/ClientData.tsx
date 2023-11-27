@@ -25,7 +25,7 @@ const ClientData:FC<Props> = ({}) => {
         </Link>:
         <Link href={'/api/auth/signin'} className={'flex rounded-full px-3 py-2 text-lg text-accent transition-colors hover:bg-slate-600'}>
             <div className={'flex w-fit items-center space-x-3'}>
-                <h3 className={'w-fit'}>Log in</h3>
+                <h3 className={'w-fit'}>Sign in</h3>
                 <AvatarIcon className={'h-full w-fit'}/>
             </div>
         </Link>;

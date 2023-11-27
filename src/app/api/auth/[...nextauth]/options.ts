@@ -5,6 +5,8 @@ import {NextAuthOptions} from 'next-auth';
 import {parseJwt} from '@/lib/utils';
 import {axiosInst, serverAuthedAxiosInst} from '@/backendAxios';
 
+import {signupResultSuccessSchema} from '@/types/signUp';
+
 
 const options: NextAuthOptions = {
     pages: {
@@ -22,8 +24,10 @@ const options: NextAuthOptions = {
             async authorize(credentials) {
                 if (!credentials) return null;
 
-                const tokens = await backendAPI.login(credentials, axiosInst);
-                if (!tokens.success) throw new Error(tokens.data.detail);
+                const tokens = await backendAPI.signin(credentials, axiosInst);
+                if (!tokens.success) {
+                    throw new Error(JSON.stringify(tokens.data.detail));
+                }
 
                 const authedInstance = await serverAuthedAxiosInst({
                     accessToken: tokens.data.access_token,
@@ -42,6 +46,28 @@ const options: NextAuthOptions = {
                     console.error(res.error);
                     return null;
                 }
+            },
+        }),
+        // eslint-disable-next-line new-cap
+        Credentials({
+            id: 'signup_auth',
+            credentials: {},
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            authorize(credentials) {
+                if (!credentials || !('data' in credentials)) return null;
+                const data =
+                    signupResultSuccessSchema.safeParse(
+                        JSON.parse(credentials.data as string),
+                    );
+                if (!data.success) {
+                    throw new Error(JSON.stringify(data.error.message));
+                }
+                return data.success ? {
+                    ...data.data,
+                    accessToken: data.data.tokens.access_token,
+                    refreshToken: data.data.tokens.refresh_token,
+                } : null;
             },
         }),
     ],

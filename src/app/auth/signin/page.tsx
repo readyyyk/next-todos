@@ -5,12 +5,13 @@ import {z} from 'zod';
 import CenterLayout from '@/components/CenterLayout';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import schema from './schema';
+import schema from '@/types/signIn';
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {signIn} from 'next-auth/react';
 import {useRouter} from 'next/navigation';
+import Link from 'next/link';
 
 type validationSchema = z.infer<typeof schema>;
 
@@ -40,7 +41,7 @@ const Page:FC<Props> = ({}) => {
 
     return (
         <CenterLayout>
-            <h1 className={'text-center text-3xl'}>Login</h1>
+            <h1 className={'text-center text-3xl'}>Sign in</h1>
             <FormProvider {...form}>
                 <form className="space-y-6" onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}>
                     <FormField
@@ -69,7 +70,12 @@ const Page:FC<Props> = ({}) => {
                             </FormItem>
                         )}
                     />
-                    <Button type="submit" loading={form.formState.isSubmitting}>Submit</Button>
+                    <div className={'flex space-x-3'}>
+                        <Button type='submit' variant='success' loading={form.formState.isSubmitting}>Submit</Button>
+                        <Link href={'/auth/signup'}>
+                            <Button variant='info'>Sign up</Button>
+                        </Link>
+                    </div>
                 </form>
             </FormProvider>
         </CenterLayout>

@@ -21,6 +21,8 @@ const buttonVariants = cva(
           "bg-red-600 text-primary-foreground hover:bg-red-700",
         success:
           "bg-green-600 text-primary-foreground hover:bg-green-700",
+        info:
+          "bg-blue-600 text-primary-foreground hover:bg-blue-700",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },

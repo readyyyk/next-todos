@@ -2,21 +2,18 @@
 
 import React, {FC} from 'react';
 import ClientImage from '@/components/ClientImage';
-import {redirect} from 'next/navigation';
 import backendAPI from '@/backendAPI';
-import {useSession} from 'next-auth/react';
 import {useQuery} from '@tanstack/react-query';
 import {Skeleton} from '@/components/ui/skeleton';
 import {createAuthedAxiosInst} from '@/backendAxios';
+import {Session} from 'next-auth';
 
-interface Props {}
 
-const ClientData:FC<Props> = ({}) => {
-    const {data: session} = useSession();
-    if (!session) {
-        redirect('/api/auth/signin');
-    }
+interface Props {
+    session: Session,
+}
 
+const ClientData:FC<Props> = ({session}) => {
     const instance = createAuthedAxiosInst(session.user);
     const {queryFn, queryKey} = backendAPI.getMe(null, instance);
     const query = useQuery({

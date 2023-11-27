@@ -5,10 +5,14 @@ import {z} from 'zod';
 import CenterLayout from '@/components/CenterLayout';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import schema from './schema';
+import schema from '@/types/signUp';
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
+import backendAPI from '@/backendAPI';
+import {axiosInst} from '@/backendAxios';
+import {signIn} from 'next-auth/react';
+import Link from 'next/link';
 
 type validationSchema = z.infer<typeof schema>;
 
@@ -20,13 +24,27 @@ const Page:FC<Props> = ({}) => {
         resolver: zodResolver(schema),
     });
 
-    const onSubmit: SubmitHandler<validationSchema> = (data) => {
-        console.log(data);
+    const onSubmit: SubmitHandler<validationSchema> = async (data) => {
+        form.clearErrors();
+        const resp = await backendAPI.signup(data, axiosInst);
+        if (!resp.success) {
+            if (resp.data.detail === 'IntegrityError on creating User') {
+                form.setError('username', {type: 'custom', message: 'Username already exists!'});
+                return;
+            }
+            console.error('signup.Page.onSubmit: resp is', resp);
+            return;
+        }
+        await signIn('signup_auth', {
+            data: JSON.stringify(resp.data),
+            callbackUrl: '/',
+            redirect: true,
+        });
     };
 
     return (
         <CenterLayout>
-            <h1 className={'text-center text-3xl'}>Login</h1>
+            <h1 className={'text-center text-3xl'}>Sign up</h1>
             <FormProvider {...form}>
                 <form className="space-y-6" onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}>
                     <FormField
@@ -46,7 +64,7 @@ const Page:FC<Props> = ({}) => {
                         <h2 className={'col-span-2 text-xl'}>Names</h2>
                         <FormField
                             control={form.control}
-                            name="firstName"
+                            name="firstname"
                             render={({field}) => (
                                 <FormItem>
                                     <FormControl>
@@ -58,7 +76,7 @@ const Page:FC<Props> = ({}) => {
                         />
                         <FormField
                             control={form.control}
-                            name="lastName"
+                            name="lastname"
                             render={({field}) => (
                                 <FormItem>
                                     <FormControl>
@@ -96,7 +114,13 @@ const Page:FC<Props> = ({}) => {
                             )}
                         />
                     </div>
-                    <Button type="submit">Submit</Button>
+
+                    <div className={'flex space-x-3'}>
+                        <Button type='submit' variant='success' loading={form.formState.isSubmitting}>Submit</Button>
+                        <Link href={'/auth/signin'}>
+                            <Button variant='info'>Sign in</Button>
+                        </Link>
+                    </div>
                 </form>
             </FormProvider>
         </CenterLayout>
