@@ -1,9 +1,8 @@
 import React, {FC} from 'react';
 import backendAPI from '@/backendAPI';
 import ClientImage from '@/components/ClientImage';
-import ActionsBar from '@/app/[todoId]/ActionsBar';
-import {Button} from '@/components/ui/button';
 import {serverAuthedAxiosInst} from '@/backendAxios';
+import Interactive from './Interactive';
 
 interface Props {
     todoId: number
@@ -35,12 +34,7 @@ const TaskData:FC<Props> = async ({todoId}) => {
                 <h2 className={'text-xl font-light'}>{response.data.owner.username}</h2>
             </div>
         </div>
-        <h1 className={'text-lg'}>{response.data.description}</h1>
-        <div className={'grid grid-cols-2 gap-2'}>
-            <ActionsBar isDone={response.data.state==='done'} className={'col-span-2 text-lg'}/>
-            <Button className={'bg-red-500 text-lg'} disabled> Delete </Button>
-            <Button className={'bg-green-500 text-lg'} disabled> Save </Button>
-        </div>
+        <Interactive {...response.data}/>
     </>);
 };
 

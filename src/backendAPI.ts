@@ -24,6 +24,7 @@ import {
     signinResultErrorSchema,
     signinResultSuccess,
 } from '@/types/signIn';
+import {errorSchema} from '@/types/error';
 
 
 // TODO: only query function requires instance, but wrapper only keyed value
@@ -48,6 +49,9 @@ interface IBackendAPI {
 
     createTask(data:ITaskCreateScheme, instance:AxiosInstance):
         Promise<ITaskSchemeSafeResult>,
+
+    deleteTask(id: number, instance:AxiosInstance):
+        Promise<{success: true} | {success: false, detail: string}>,
 }
 
 
@@ -193,6 +197,23 @@ const backendAPI: IBackendAPI = {
         } catch (e) {
             console.error('\n --[X]--: ', String(e));
             return TaskWithOwnerScheme.safeParse(null);
+        }
+    },
+    async deleteTask(id, instance) {
+        try {
+            console.log(instance);
+            await instance.delete(`/todos/${id}/delete`);
+            return {success: true};
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const err = e as AxiosError;
+                return {
+                    detail: errorSchema.parse(err.response?.data).detail,
+                    success: false,
+                };
+            }
+            console.error('\n --[X]--: ', String(e));
+            return {success: false, detail: String(e)};
         }
     },
 };
