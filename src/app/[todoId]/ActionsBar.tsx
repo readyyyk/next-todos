@@ -23,7 +23,7 @@ const ActionsBar:FC<Props> = ({isDone, className}) => {
     const [value, setValue] = useState(isDone ? 'Done' : 'Active');
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild className={twMerge(value==='Done' ? 'bg-green-300 dark:bg-green-800' : 'bg-blue-300 dark:bg-blue-800', className)}>
+            <DropdownMenuTrigger asChild className={twMerge(value==='Done' ? 'bg-green-300 dark:bg-green-800' : 'bg-blue-300 dark:bg-blue-800', className)} disabled>
                 <Button variant="outline">{value}</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className='w-56'>

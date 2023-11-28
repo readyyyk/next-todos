@@ -1,14 +1,12 @@
-'use client';
-
 import React, {FC} from 'react';
 import TaskList from '@/app/TaskList';
 import NotLogged from '@/components/NotLogged';
-import {useSession} from 'next-auth/react';
+import {getServerSession} from 'next-auth';
+import options from '@/app/api/auth/[...nextauth]/options';
 
 
-const Home:FC = () => {
-    const {data: session} = useSession();
-
+const Home:FC = async () => {
+    const session = await getServerSession(options);
     return session ?
         <div className={'container m-auto px-2 py-12'}>
             <h1 className={'text-center text-4xl'}>Task list:</h1>

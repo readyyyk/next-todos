@@ -1,8 +1,10 @@
 import axios, {AxiosError, AxiosInstance} from 'axios';
 import {
+    ITaskCreateScheme,
     ITaskListSafeResult,
+    ITaskSchemeSafeResult,
     ITaskWithOwnerSafeResult,
-    TaskListScheme,
+    TaskListScheme, TaskScheme,
     TaskWithOwnerScheme,
 } from '@/types/task';
 import {IUserSafeResult, UserScheme} from '@/types/user';
@@ -24,9 +26,10 @@ import {
 } from '@/types/signIn';
 
 
+// TODO: only query function requires instance, but wrapper only keyed value
 interface cachedApiRouteResult<B> {
     queryFn(this: void): Promise<B>,
-    queryKey: string,
+    queryKey: string[],
 }
 interface cachedApiRoute<A, B> {
     (cacheKey: A, instance: AxiosInstance): cachedApiRouteResult<B>
@@ -38,11 +41,15 @@ interface IBackendAPI {
         Promise<signupResultError | signupResultSuccess>,
     refreshTokens(refreshToken: string, instance: AxiosInstance):
         Promise<signinResultError | signinResultSuccess>,
-    getTodos: cachedApiRoute<number, ITaskListSafeResult>,
+    getTasksByUser: cachedApiRoute<number, ITaskListSafeResult>,
     getMe: cachedApiRoute<null, IUserSafeResult>,
     getUser: cachedApiRoute<number, IUserSafeResult>,
-    getTodoWithOwner: cachedApiRoute<number, ITaskWithOwnerSafeResult>,
+    getTaskWithOwner: cachedApiRoute<number, ITaskWithOwnerSafeResult>,
+
+    createTask(data:ITaskCreateScheme, instance:AxiosInstance):
+        Promise<ITaskSchemeSafeResult>,
 }
+
 
 const backendAPI: IBackendAPI = {
     async signin(data: { username: string, password: string }, instance) {
@@ -111,7 +118,7 @@ const backendAPI: IBackendAPI = {
     },
     */
 
-    getTodos(userId, instance) {
+    getTasksByUser(userId, instance) {
         const queryFn = async ()=> {
             try {
                 const res = await instance.get('/todos/my');
@@ -121,7 +128,7 @@ const backendAPI: IBackendAPI = {
                 return TaskListScheme.safeParse(null);
             }
         };
-        const queryKey = `todo-array-${userId}`;
+        const queryKey = [`todo-array-${userId}`];
         return {
             queryFn,
             queryKey,
@@ -137,7 +144,7 @@ const backendAPI: IBackendAPI = {
                 return UserScheme.safeParse(null);
             }
         };
-        const queryKey = `user-me`;
+        const queryKey = [`user-me`];
         return {
             queryFn,
             queryKey,
@@ -153,27 +160,40 @@ const backendAPI: IBackendAPI = {
                 return UserScheme.safeParse(null);
             }
         };
-        const queryKey = `user-${userId}`;
+        const queryKey = [`user-${userId}`];
         return {
             queryFn,
             queryKey,
         };
     },
-    getTodoWithOwner(todoId, instance) {
+
+    getTaskWithOwner(todoId, instance) {
+        const queryKey = [`todo-with-owner-${todoId}`, `todo-${todoId}`];
         const queryFn = async ()=> {
             try {
                 const res = await instance.get(`/todos/${todoId}/with-owner`);
-                return TaskWithOwnerScheme.safeParse(res?.data);
+                const result = TaskWithOwnerScheme.safeParse(res?.data);
+                result.success && queryKey.push(`user-${result.data.owner_id}`);
+                return result;
             } catch (e) {
                 console.error('\n --[X]--: ', String(e));
                 return TaskWithOwnerScheme.safeParse(null);
             }
         };
-        const queryKey = `todo-with-owner-${todoId}`;
         return {
             queryFn,
             queryKey,
         };
+    },
+
+    async createTask(data, instance) {
+        try {
+            const res = await instance.post(`/todos/create`, data);
+            return TaskScheme.safeParse(res?.data);
+        } catch (e) {
+            console.error('\n --[X]--: ', String(e));
+            return TaskWithOwnerScheme.safeParse(null);
+        }
     },
 };
 

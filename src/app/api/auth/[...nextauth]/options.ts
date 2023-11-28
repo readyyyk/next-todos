@@ -52,8 +52,6 @@ const options: NextAuthOptions = {
         Credentials({
             id: 'signup_auth',
             credentials: {},
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             authorize(credentials) {
                 if (!credentials || !('data' in credentials)) return null;
                 const data =
@@ -86,7 +84,7 @@ const options: NextAuthOptions = {
             return token;
         },
         session: ({session, token}) => {
-            session.user = token.user;
+            token && (session.user = token.user);
             return session;
         },
     },

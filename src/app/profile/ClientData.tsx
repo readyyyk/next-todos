@@ -18,7 +18,7 @@ const ClientData:FC<Props> = ({session}) => {
     const {queryFn, queryKey} = backendAPI.getMe(null, instance);
     const query = useQuery({
         queryFn,
-        queryKey: [queryKey],
+        queryKey: queryKey,
     });
 
     if (query.isLoading) {

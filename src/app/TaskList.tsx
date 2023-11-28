@@ -7,6 +7,9 @@ import {useQuery} from '@tanstack/react-query';
 import {Skeleton} from '@/components/ui/skeleton';
 import {User} from 'next-auth';
 import {createAuthedAxiosInst} from '@/backendAxios';
+import NewTask from '@/components/NewTask';
+import NewTaskModal from '@/components/NewTaskModal';
+import {useSearchParams} from 'next/navigation';
 
 
 interface Props {
@@ -14,19 +17,21 @@ interface Props {
 }
 
 const TaskList:FC<Props> = ({user}) => {
+    const searchParams = useSearchParams();
     const instance = createAuthedAxiosInst(user);
 
-    const {queryFn, queryKey} = backendAPI.getTodos(user.id, instance);
+    const {queryFn, queryKey} = backendAPI.getTasksByUser(user.id, instance);
     const query = useQuery({
-        queryKey: [queryKey],
+        queryKey: queryKey,
         queryFn,
     });
 
     let taskList = <h2>Failed to fetch</h2>;
     if (query.data && query.data.success) {
-        taskList = <h2 className={'grid-cols-12 text-2xl font-bold'}>You have no todos.<br />Go and create one!</h2>;
+        taskList = <NewTask />;
         if (query.data.data.length) {
             taskList = (<>
+                <NewTask />
                 {query.data.data.map((el) => {
                     return <Task {...el} key={'task-' + el.id}/>;
                 })}
@@ -40,7 +45,10 @@ const TaskList:FC<Props> = ({user}) => {
                 <Skeleton className={'h-40'}/>
                 <Skeleton className={'h-52'}/>
                 <Skeleton className={'h-44'}/>
-            </> : taskList
+            </> : <>
+                {searchParams.get('create') && <NewTaskModal user={user}/>}
+                {taskList}
+            </>
         }
     </div>;
 };
