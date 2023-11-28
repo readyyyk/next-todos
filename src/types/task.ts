@@ -2,15 +2,32 @@ import {SafeParseReturnType, z} from 'zod';
 import {UserScheme} from '@/types/user';
 
 
+export enum TaskState {
+    DONE = 'done',
+    ACTIVE = 'active',
+    PASSIVE = 'passive',
+    IMPORTANT = 'important',
+}
+const taskStateSchema = z.nativeEnum(TaskState);
+
 export const TaskScheme = z.object({
     id: z.number(),
     owner_id: z.number(),
     description: z.string().trim().min(1),
-    state: z.string(), // TODO Enum
+    state: taskStateSchema,
     created_at: z.string(),
 });
 export type ITaskScheme = z.infer<typeof TaskScheme>;
 export type ITaskSchemeSafeResult =
+    SafeParseReturnType<ITaskScheme, ITaskScheme>;
+
+export const TaskUpdateScheme = z.object({
+    // owner_id: z.number().optional(),
+    description: z.string().trim().min(1).optional(),
+    state: taskStateSchema.optional(),
+});
+export type ITaskUpdateScheme = z.infer<typeof TaskUpdateScheme>;
+export type ITaskUpdateSchemeSafeResult =
     SafeParseReturnType<ITaskScheme, ITaskScheme>;
 
 export const TaskCreateScheme = z.object({

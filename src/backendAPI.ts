@@ -3,6 +3,8 @@ import {
     ITaskCreateScheme,
     ITaskListSafeResult,
     ITaskSchemeSafeResult,
+    ITaskUpdateScheme,
+    ITaskUpdateSchemeSafeResult,
     ITaskWithOwnerSafeResult,
     TaskListScheme, TaskScheme,
     TaskWithOwnerScheme,
@@ -52,6 +54,9 @@ interface IBackendAPI {
 
     deleteTask(id: number, instance:AxiosInstance):
         Promise<{success: true} | {success: false, detail: string}>,
+
+    updateTask(id: number, data:ITaskUpdateScheme, instance:AxiosInstance):
+        Promise<ITaskUpdateSchemeSafeResult>,
 }
 
 
@@ -214,6 +219,15 @@ const backendAPI: IBackendAPI = {
             }
             console.error('\n --[X]--: ', String(e));
             return {success: false, detail: String(e)};
+        }
+    },
+    async updateTask(id, data, instance) {
+        try {
+            const res = await instance.put(`/todos/${id}/update`, data);
+            return TaskScheme.safeParse(res?.data);
+        } catch (e) {
+            console.error('\n --[X]--: ', String(e));
+            return TaskWithOwnerScheme.safeParse(null);
         }
     },
 };

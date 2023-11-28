@@ -1,6 +1,6 @@
 'use client';
 
-import {FC, useState} from 'react';
+import {FC, SetStateAction, Dispatch} from 'react';
 import {Button} from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -12,27 +12,50 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {twMerge} from 'tailwind-merge';
+import {TaskState} from '@/types/task';
 
 
 interface Props {
-    isDone: boolean
+    selectedState: TaskState
+    setSelectedState: Dispatch<SetStateAction<TaskState>>,
     className?: string
 }
 
-const ActionsBar:FC<Props> = ({isDone, className}) => {
-    const [value, setValue] = useState(isDone ? 'Done' : 'Active');
+const variants = {
+    [TaskState.DONE]: 'bg-green-300 dark:bg-green-800',
+    [TaskState.ACTIVE]: 'bg-blue-300 dark:bg-blue-800',
+    [TaskState.PASSIVE]: 'bg-gray-300 dark:bg-gray-800',
+    [TaskState.IMPORTANT]: 'bg-yellow-300 dark:bg-yellow-800',
+};
+
+const ActionsBar:FC<Props> = ({selectedState, setSelectedState, className}) => {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild className={twMerge(value==='Done' ? 'bg-green-300 dark:bg-green-800' : 'bg-blue-300 dark:bg-blue-800', className)} disabled>
-                <Button variant="outline">{value}</Button>
+            <DropdownMenuTrigger
+                className={twMerge(variants[selectedState], className)}
+                asChild
+            >
+                <Button variant="outline">{selectedState}</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className='w-56'>
                 <DropdownMenuLabel> State </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={value} onValueChange={setValue} className={'flex flex-col gap-1'}>
-                    <DropdownMenuRadioItem value="Done" className={'bg-green-300 dark:bg-green-800'}> Done </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="Active" className={'bg-blue-300 dark:bg-blue-800'}> Active </DropdownMenuRadioItem>
-                    {/* <DropdownMenuRadioItem value="passive"> Passive </DropdownMenuRadioItem>*/}
+                <DropdownMenuRadioGroup
+                    value={selectedState}
+                    onValueChange={(v) => setSelectedState(v as TaskState)}
+                    className={'flex flex-col gap-1'}
+                >
+                    {
+                        Object.values(TaskState).map((state) => (
+                            <DropdownMenuRadioItem
+                                key={`set-state-${state}`}
+                                value={state}
+                                className={variants[state]}
+                            >
+                                {state}
+                            </DropdownMenuRadioItem>
+                        ))
+                    }
                 </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>
