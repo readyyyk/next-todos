@@ -1,7 +1,7 @@
 import React, {FC} from 'react';
 import backendAPI from '@/backendAPI';
 import ClientImage from '@/components/ClientImage';
-import {serverAuthedAxiosInst} from '@/backendAxios';
+import {axiosInst} from '@/backendAxios';
 import Interactive from './Interactive';
 
 interface Props {
@@ -9,11 +9,13 @@ interface Props {
 }
 
 const TaskData:FC<Props> = async ({todoId}) => {
-    const instance = await serverAuthedAxiosInst();
-    const {queryFn} = backendAPI.getTaskWithOwner(todoId, instance);
+    const {queryFn} = backendAPI.getTaskWithOwner(todoId, axiosInst);
     const response = await queryFn();
     if (!response.success) {
-        console.error(response.error.message);
+        if (response.error.message.includes('null')) {
+            return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Task with provided id not found! </h2>;
+        }
+        console.error(response.error);
         return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;
     }
     return (<>

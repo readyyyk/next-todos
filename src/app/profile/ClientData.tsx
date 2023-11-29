@@ -38,7 +38,7 @@ const ClientData:FC<Props> = ({session}) => {
     const response = query.data;
 
     if (!response.success) {
-        console.error(response.error.message);
+        console.error(response.error);
         return <h2 className={'text-center text-3xl text-red-900 text-opacity-75'}> Failed to validate data... </h2>;
     }
 
